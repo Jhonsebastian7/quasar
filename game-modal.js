@@ -55,6 +55,20 @@
     document.body.style.overflow = "";
   }
 
+  function loadCover(el, url) {
+    if (!url) { el.style.backgroundImage = "url('game-placeholder.jpg')"; return; }
+    el.style.backgroundImage = "url('" + url + "'),url('game-placeholder.jpg')";
+    var tries = 0;
+    var probe = new Image();
+    probe.onload = function () { el.style.backgroundImage = "url('" + url + "')"; };
+    probe.onerror = function () {
+      tries++;
+      if (tries < 3) { setTimeout(function () { probe.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "retry=" + tries; }, 1200 * tries); }
+      else { el.style.backgroundImage = "url('game-placeholder.jpg')"; }
+    };
+    probe.src = url;
+  }
+
   /**
    * item = {
    *   title: string (requerido),
@@ -74,7 +88,7 @@
     var tagsEl = document.getElementById("qmTags");
     var buy = document.getElementById("qmBuy");
 
-    coverEl.style.backgroundImage = item.img ? "url('" + item.img + "')" : "none";
+    loadCover(coverEl, item.img);
     titleEl.textContent = item.title || "";
     tagsEl.innerHTML =
       (item.platformTag ? '<span class="qm-tag">' + esc(item.platformTag) + '</span>' : "") +

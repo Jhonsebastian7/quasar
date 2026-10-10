@@ -112,7 +112,7 @@
 
   function cardHTML(it, idx) {
     return '<article class="pc-card" tabindex="0" role="button" data-qidx="' + idx + '" aria-label="Ver ' + esc(it.t) + '">'
-      + '<div class="pc-cover" style="background-image:url(\'' + esc(it.img || "") + '\'),url(\'quasar-logo.png\')"></div>'
+      + '<div class="pc-cover" data-cover="' + esc(it.img || "") + '" style="background-image:url(\'' + esc(it.img || "") + '\'),url(\'game-placeholder.jpg\')"></div>'
       + '<div class="pc-body"><div class="pc-name">' + esc(it.t) + '</div>'
       + '<div class="pc-tags"><span class="pc-tag">' + esc(PLATFORM_TAG) + '</span><span class="pc-tag ghost">' + esc(it.ty || "") + '</span></div>'
       + '<div class="pc-meta"><span>' + ICO_DL + esc(fmtDl(it.dl)) + '</span><span>' + ICO_SZ + esc(it.sz || "") + '</span></div>'
@@ -122,7 +122,7 @@
     var nn = String(n).padStart(2, "0");
     return '<div class="rank-row" tabindex="0" role="button" data-qidx="' + idx + '" aria-label="Ver ' + esc(it.t) + '">'
       + '<span class="rank-num">' + nn + '</span>'
-      + '<div class="rank-cover" style="background-image:url(\'' + esc(it.img || "") + '\'),url(\'quasar-logo.png\')"></div>'
+      + '<div class="rank-cover" data-cover="' + esc(it.img || "") + '" style="background-image:url(\'' + esc(it.img || "") + '\'),url(\'game-placeholder.jpg\')"></div>'
       + '<div><div class="rank-title">' + esc(it.t) + '</div>'
       + '<div class="rank-sub">' + esc(it.g || "") + ' <span class="platform-pill">' + esc(it.ty || "PC") + '</span></div></div>'
       + '<div class="rank-stat">' + ICO_DL + esc(fmtDl(it.dl)) + '</div>'
@@ -199,6 +199,23 @@
     pag(latestPag, lt, state.latestPage, function (pg) { state.latestPage = pg; renderAll(); });
     pag(popPag, pt, state.popPage, function (pg) { state.popPage = pg; renderAll(); });
     wireCardClicks();
+    repairCovers();
+  }
+  function repairCovers() {
+    var nodes = document.querySelectorAll(".pc-cover[data-cover],.rank-cover[data-cover]");
+    nodes.forEach(function (el) {
+      var url = el.getAttribute("data-cover");
+      if (!url) return;
+      var tries = 0;
+      var probe = new Image();
+      probe.onload = function () { el.style.backgroundImage = "url('" + url + "')"; };
+      probe.onerror = function () {
+        tries++;
+        if (tries < 3) { setTimeout(function () { probe.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "retry=" + tries; }, 1200 * tries); }
+        else { el.style.backgroundImage = "url('game-placeholder.jpg')"; }
+      };
+      probe.src = url;
+    });
   }
   function resetPages() { state.randPage = 1; state.latestPage = 1; state.popPage = 1; }
   var k = 0;
